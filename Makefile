@@ -66,6 +66,6 @@ clean:
 .PHONY: clean
 
 clean_all: clean
-	rm -fv $(META_DIR)/*
+	rm -fv tags cscope.out
 .PHONY: clean_all
 
