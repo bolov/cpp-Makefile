@@ -6,7 +6,6 @@
 SRC_DIR = src
 BUILD_DIR = build
 BIN_DIR = bin
-META_DIR = .meta
 
 APP_NAME = dreamflight
 APP_SOURCES_NO_DIR = main.cpp
@@ -30,7 +29,7 @@ LDFLAGS =
 build: $(BIN_DIR)/$(APP_NAME)
 .PHONY:build
 
-build_metadata: $(addprefix $(META_DIR)/, tags cscope.out)
+build_metadata: tags cscope.out
 .PHONY: build_metadata
 
 $(BIN_DIR)/$(APP_NAME): $(APP_OBJS)
@@ -54,11 +53,11 @@ $(APP_D):$(BUILD_DIR)/%.d: $(SRC_DIR)/%.cpp
 -include $(APP_D)
 
 
-$(META_DIR)/tags: $(SOURCES) $(HEADERS)
+tags: $(SOURCES) $(HEADERS)
 	@mkdir -p $(@D)
 	ctags -f $@ -R ./
 
-$(META_DIR)/cscope.out: $(SOURCES) $(HEADERS)
+cscope.out: $(SOURCES) $(HEADERS)
 	@mkdir -p $(@D)
 	cscope -f$@ -Rb
 
