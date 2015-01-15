@@ -21,7 +21,7 @@ HEADERS := $(shell find \( -name '*.h' -o -name '*.hpp' \) -printf '%P ')
 #compiler related variables
 
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -Werror -g
+CXXFLAGS = -std=c++14 -Wall -Wextra -Werror -g
 LDFLAGS =
 
 #bulds, targets & rules
