@@ -42,9 +42,14 @@ HEADERS := $(shell find \( -name '*.h' -o -name '*.hpp' \) -printf '%P ')
 
 #compiler related variables
 
+ifeq ($(BUILD), release)
+	OPTIMIZATION_FLAGS = -flto -O3
+endif
+
 CXX = g++
-CXXFLAGS = -std=c++14 -Wall -Wextra -Werror -g
+CXXFLAGS = -std=c++14 $(OPTIMIZATION_FLAGS) -Wall -Wextra -Werror -g
 LDFLAGS =
+
 DEBUGGER = cgdb
 
 #bulds, targets & rules
