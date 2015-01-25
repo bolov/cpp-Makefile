@@ -1,12 +1,12 @@
 #  Template Makefile
 #  Bălan Mihail <mihail.balan@gmail.com>
 
-#file related variables
 
 # set BUILD variable
+DEFAULT_BUILD = debug
 ifndef BUILD
 	ifndef build
-		BUILD = debug
+		BUILD = $(DEFAULT_BUILD)
 	else
 		BUILD = $(build)
 	endif
@@ -25,6 +25,7 @@ $(error error invalid BUILD value '$(BUILD)'. Expected 'debug' or 'release'\
 	(case insensitive))
 endif
 
+#file related variables
 SRC_DIR = src
 BUILD_DIR = $(BUILD_PREFIX)build
 BIN_DIR = $(BUILD_PREFIX)bin
