@@ -6,44 +6,26 @@
 
 
 # set BUILD variable
-DEFAULT_BUILD := debug
-ifndef BUILD
-	ifndef build
-		BUILD := $(DEFAULT_BUILD)
-	else
-		BUILD := $(build)
-	endif
-endif
+build ?= debug
+BUILD := $(build)
 
-# convert to lowercase
-BUILD := $(shell echo $(BUILD) | tr '[:upper:]' '[:lower:]')
-
-# set BUILD_PREFIX and throw error if invalid BUILD
-ifeq ($(BUILD), debug)
-	BUILD_PREFIX := debug_
-else ifeq ($(BUILD), release)
-	BUILD_PREFIX := release_
-else
-$(error error invalid BUILD value '$(BUILD)'. Expected 'debug' or 'release'\
-	(case insensitive))
+# throw error if invalid BUILD
+VALID_BUILDS := debug release
+ifeq (,$(findstring $(BUILD), $(VALID_BUILDS)))
+  $(error error invalid build '$(BUILD)'. Expected one of '$(VALID_BUILDS)')
 endif
 
 #file related variables
 
-PROJ_DIR := .
+PROJ_DIR  := .
 
-SRC_DIR := src
-BUILD_DIR := $(BUILD_PREFIX)build
-BIN_DIR := $(BUILD_PREFIX)bin
-
-SRC_DIR := $(PROJ_DIR)/$(SRC_DIR)
-BUILD_DIR := $(PROJ_DIR)/$(BUILD_DIR)
-BIN_DIR := $(PROJ_DIR)/$(BIN_DIR)
+SRC_DIR   := $(PROJ_DIR)/src
+BUILD_DIR := $(PROJ_DIR)/build/$(BUILD)
+BIN_DIR   := $(PROJ_DIR)/bin/$(BUILD)
 
 APP_NAME := dreamflight
 APP_SOURCES_NO_DIR := main.cpp
 
-APP_SOURCES := $(addprefix $(SRC_DIR)/, $(APP_SOURCES_NO_DIR))
 APP_OBJS := $(addprefix $(BUILD_DIR)/,  $(APP_SOURCES_NO_DIR:.cpp=.o))
 APP_D := $(APP_OBJS:.o=.d)
 
@@ -52,10 +34,9 @@ SOURCES := $(shell find $(SRC_DIR) \( -name '*.c' -o -name '*.cpp' \) )
 HEADERS := $(shell find $(SRC_DIR) \( -name '*.h' -o -name '*.hpp' \) )
 
 #compiler related variables
-
-ifeq ($(BUILD), release)
-	OPTIMIZATION_FLAGS := -flto -O3
-endif
+optimization_flags.debug   :=
+optimization_flags.release := -flto -O3
+OPTIMIZATION_FLAGS := $(optimization_flags.$(BUILD))
 
 CXX := g++
 CXXFLAGS := -std=c++14 $(OPTIMIZATION_FLAGS) -Wall -Wextra -Werror -g
@@ -78,11 +59,12 @@ run: build
 debug: build
 	$(DEBUGGER) $(BIN_DIR)/$(APP_NAME)
 
-
+# build executable
 $(BIN_DIR)/$(APP_NAME): $(APP_OBJS)
 	@mkdir -p $(@D)
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS)
 
+# build objects (compilation units)
 $(APP_OBJS):$(BUILD_DIR)/%.o:$(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) -o $@ -c $(CXXFLAGS) $<
