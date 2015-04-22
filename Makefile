@@ -4,6 +4,13 @@
 # WARNING
 # Does not work with filenames containing whitespaces
 
+# Usage:
+# ==============================================================================
+# make [rule] [build={debug/relase}]
+
+
+# Makefile related variables
+# ==============================================================================
 
 # set BUILD variable
 build ?= debug
@@ -15,7 +22,8 @@ ifeq (,$(findstring $(BUILD), $(VALID_BUILDS)))
   $(error error invalid build '$(BUILD)'. Expected one of '$(VALID_BUILDS)')
 endif
 
-#file related variables
+# File/Folder related variables
+# ==============================================================================
 
 PROJ_DIR  := .
 
@@ -24,7 +32,7 @@ BUILD_DIR := $(PROJ_DIR)/build/$(BUILD)
 BIN_DIR   := $(PROJ_DIR)/bin/$(BUILD)
 
 APP_NAME := dreamflight
-APP_SOURCES_NO_DIR := main.cpp
+APP_SOURCES_NO_DIR := main.cpp required.cpp
 
 APP_OBJS := $(addprefix $(BUILD_DIR)/,  $(APP_SOURCES_NO_DIR:.cpp=.o))
 APP_D := $(APP_OBJS:.o=.d)
@@ -33,7 +41,9 @@ APP_D := $(APP_OBJS:.o=.d)
 SOURCES := $(shell find $(SRC_DIR) \( -name '*.c' -o -name '*.cpp' \) )
 HEADERS := $(shell find $(SRC_DIR) \( -name '*.h' -o -name '*.hpp' \) )
 
-#compiler related variables
+# Compiler related variables
+# ==============================================================================
+
 optimization_flags.debug   :=
 optimization_flags.release := -flto -O3
 OPTIMIZATION_FLAGS := $(optimization_flags.$(BUILD))
@@ -44,7 +54,8 @@ LDFLAGS :=
 
 DEBUGGER := cgdb
 
-#bulds, targets & rules
+# Builds, targets & rules
+# ==============================================================================
 
 build: $(BIN_DIR)/$(APP_NAME)
 .PHONY:build
