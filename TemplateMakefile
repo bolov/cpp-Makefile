@@ -1,11 +1,11 @@
-#  Template Makefile
-#  Bălan Mihail <mihail.balan@gmail.com>
+# C++ Makefile
+# Bălan Mihail <mihail.balan@gmail.com>
 
 # WARNING
 # Does not work with filenames containing whitespaces
 
 # Usage:
-# make [rule] [build={debug/relase}]
+# make [rule] [build={debug|relase}]
 
 
 PROJ_DIR := .
@@ -30,6 +30,6 @@ LDFLAGS :=
 
 DEBUGGER := cgdb
 
-include MakefileFooter
+include Makefile.d/MakefileFooter
 
-include BatchMakefile
+include Makefile.d/BatchMakefile

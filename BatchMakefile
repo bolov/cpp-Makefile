@@ -1,7 +1,6 @@
 #  Bălan Mihail <mihail.balan@gmail.com>
 #
 # Batch build
-# calls Makefile with all builds
 
 MAKEFLAGS += --no-print-directory
 
