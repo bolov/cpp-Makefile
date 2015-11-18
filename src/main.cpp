@@ -6,6 +6,8 @@ using namespace std;
 
 int main() {
 
+  int a;
+
   cout << "Welcome and wake up" << endl;
   cout << "The answer is " << the_answer_to_life_the_universe_and_everything()
        << "." << endl;

@@ -5,11 +5,12 @@
 
 MAKEFLAGS += --no-print-directory
 
-build:
+batch-build:
 	$(MAKE) -f Makefile build build=debug
 	$(MAKE) -f Makefile build build=release
-.PHONY:build
+.PHONY:batch-build
 
-clean:
+batch-clean:
 	$(MAKE) -f Makefile clean build=debug
 	$(MAKE) -f Makefile clean build=release
+.PHONY:batch-clean
