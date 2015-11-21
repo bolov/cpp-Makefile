@@ -7,11 +7,10 @@
 # Usage:
 # make [rule] [build={debug|relase}]
 
+NAME := dreamflight
+TYPE := exe-no-install
 
-PROJ_DIR := .
-
-APP_NAME := dreamflight
-APP_SOURCES := main.cpp required.cpp
+SOURCES := main.cpp required.cpp
 
 optimization_flags.debug   :=
 optimization_flags.release := -flto -O3

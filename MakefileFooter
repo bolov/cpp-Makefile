@@ -15,32 +15,48 @@ ifeq (,$(findstring $(BUILD), $(VALID_BUILDS)))
   $(error error invalid build '$(BUILD)'. Expected one of '$(VALID_BUILDS)')
 endif
 
-
 # File/Folder related variables
 # ==============================================================================
 
+ifndef NAME
+  $(error NAME not set)
+endif
+
+TYPE ?= exe-no-install
+VALID_TYPES := exe-no-install exe lib
+ifeq (,$(findstring $(TYPE), $(VALID_TYPES)))
+  $(error error invalid value '$(TYPE)' for TYPE. \
+     Valid values are: '$(VALID_TYPES)')
+endif
+
 PROJ_DIR ?= .
+PREFIX   ?= $(PROJ_DIR)
 
-SRC_DIR   ?= $(PROJ_DIR)/src
-BUILD_DIR ?= $(PROJ_DIR)/build/$(BUILD)
-BIN_DIR   ?= $(PROJ_DIR)/bin/$(BUILD)
+SRC_DIR     ?= $(PROJ_DIR)/src
+BUILD_DIR   ?= $(PROJ_DIR)/build/$(BUILD)
 
-ifndef APP_NAME
-  $(error APP_NAME not set)
+BIN_DIR     ?= $(PREFIX)/bin/$(BUILD)
+LIB_DIR     ?= $(PREFIX)/lib/
+INCLUDE_DIR ?= $(PREFIX)/include/$(NAME)
+
+lib_suffix.release :=
+lib_suffix.debug   := -debug
+
+BIN_BASENAME ?= $(NAME)
+LIB_BASENAME ?= lib$(NAME)$(lib_suffix.$(BUILD)).a
+
+ifndef SOURCES
+  $(error SOURCES not set)
 endif
-ifndef APP_SOURCES
-  $(error APP_SOURCES not set)
-endif
 
-APP_OBJS := $(addprefix $(BUILD_DIR)/,  $(APP_SOURCES:.cpp=.o))
-APP_D := $(APP_OBJS:.o=.d)
+OBJS := $(addprefix $(BUILD_DIR)/,  $(SOURCES:.cpp=.o))
+PREREQS := $(OBJS:.o=.d)
 
 
 #used for ctags and cscope
-SOURCES := $(shell find $(SRC_DIR) \( -name '*.c' -o -name '*.cpp' \) )
-HEADERS := $(shell find $(SRC_DIR) \( -name '*.h' -o -name '*.hpp' \) )
+DB_SOURCES := $(shell find $(SRC_DIR) \( -name '*.c' -o -name '*.cpp' \) )
+DB_HEADERS := $(shell find $(SRC_DIR) \( -name '*.h' -o -name '*.hpp' \) )
 
-# optimization_flags.<build> needed
 OPTIMIZATION_FLAGS := $(optimization_flags.$(BUILD))
 
 WARNING_FLAGS := $(warning_flags.all) $(warning_flags.$(BUILD))
@@ -50,26 +66,64 @@ CXXFLAGS := $(CXXFLAGS) $(WARNING_FLAGS) $(OPTIMIZATION_FLAGS)
 # Builds, targets & rules
 # ==============================================================================
 
-build: $(BIN_DIR)/$(APP_NAME)
+ifeq ($(TYPE), exe-no-install)
+# build exe into BIN_DIR
+
+build: $(BIN_DIR)/$(BIN_BASENAME)
 .PHONY:build
 
-build_metadata: tags cscope.out
-.PHONY: build_metadata
-
-run: build
-	$(BIN_DIR)/$(APP_NAME)
-.PHONY:run
-
-debug: build
-	$(DEBUGGER) $(BIN_DIR)/$(APP_NAME)
-
 # build executable
-$(BIN_DIR)/$(APP_NAME): $(APP_OBJS)
+$(BIN_DIR)/$(BIN_BASENAME): $(OBJS)
 	@mkdir -p $(@D)
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS)
 
+endif
+ifeq ($(TYPE), exe)
+# build exe into BUILD_DIR, install into BIN_DIR
+
+build: $(BUILD_DIR)/$(BIN_BASENAME)
+.PHONY:build
+
+install: $(BUILD_DIR)/$(BIN_BASENAME)
+	@install -v -CD -t $(BIN_DIR) $(BUILD_DIR)/$(BIN_BASENAME)
+.PHONY:install
+
+# build executable
+$(BUILD_DIR)/$(BIN_BASENAME): $(OBJS)
+	@mkdir -p $(@D)
+	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS)
+
+endif
+
+ifeq ($(TYPE), $(filter $(TYPE),exe exe-no-install))
+
+run: build
+	$(BIN_DIR)/$(BIN_BASENAME)
+.PHONY:run
+
+debug: build
+	$(DEBUGGER) $(BIN_DIR)/$(BIN_BASENAME)
+
+endif
+
+
+ifeq ($(TYPE), lib)
+
+build: $(BUILD_DIR)/$(LIB_BASENAME)
+.PHONY:build
+
+install: $(BUILD_DIR)/$(LIB_BASENAME)
+	@install -v -m 444 -CD -t $(LIB_DIR) $(BUILD_DIR)/$(LIB_BASENAME)
+	@install -v -m 444 -CD -t $(INCLUDE_DIR) $(DB_HEADERS)
+.PHONY:install
+
+$(BUILD_DIR)/$(LIB_BASENAME): $(OBJS)
+	@mkdir -p $(@D)
+	ar rcs $@ $<
+endif
+
 # build objects (compilation units)
-$(APP_OBJS):$(BUILD_DIR)/%.o:$(SRC_DIR)/%.cpp
+$(OBJS):$(BUILD_DIR)/%.o:$(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) -o $@ -c $(CXXFLAGS) $<
 
@@ -77,26 +131,58 @@ $(APP_OBJS):$(BUILD_DIR)/%.o:$(SRC_DIR)/%.cpp
 # -M all headers; -MM ignore system
 # -MG assume missing header
 # -MT change target
-$(APP_D):$(BUILD_DIR)/%.d:$(SRC_DIR)/%.cpp
+$(PREREQS):$(BUILD_DIR)/%.d:$(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
 	@$(CXX) -o $@ -MM -MG -MT $(@:.d=.o) -MT $@ $(CXXFLAGS) $<
 
 #include the makefiles with the automatic prerequisites of the included header
 #files
--include $(APP_D)
+-include $(PREREQS)
 
+build_metadata: tags cscope.out
+.PHONY: build_metadata
 
-tags: $(SOURCES) $(HEADERS)
+tags: $(DB_SOURCES) $(DB_HEADERS)
 	ctags -f $@ -R $(SRC_DIR)
 
-cscope.out: $(SOURCES) $(HEADERS)
+cscope.out: $(DB_SOURCES) $(DB_HEADERS)
 	cscope -f$@ -Rb
 
 clean:
-	rm -fv $(BUILD_DIR)/* $(BIN_DIR)/*
+ifeq ($(TYPE), exe-no-install)
+	@rm -fv $(BUILD_DIR)/* $(BIN_DIR)/*
+else
+	@rm -fv $(BUILD_DIR)/*
+endif
 .PHONY: clean
 
 clean_all: clean
-	rm -fv tags cscope.out
+	@rm -fv tags cscope.out
 .PHONY: clean_all
+
+ifeq ($(TYPE), exe)
+uninstall:
+	@rm -fv $(BIN_DIR)/*
+.PHONY:uninstall
+endif
+
+ifeq ($(TYPE), lib)
+uninstall:
+	@rm -fv $(INCLUDE_DIR)/* $(LIB_DIR)/*
+.PHONY:uninstall
+endif
+
+FAIL_SAFE_FIND := find . -maxdepth 1 -type d -a -not -name ".*" \
+                  -a -not -iname "*make*" -a -not -name "*src*"
+
+fail-safe:
+	@echo "Trigger fail-safe?" ; \
+	echo "The following directories will be recursively removed:" ; \
+	$(FAIL_SAFE_FIND) -print ; \
+	echo -n "[y/n]: " ;\
+	read answer ; \
+	[ $$answer = y ] \
+		&& $(FAIL_SAFE_FIND) -exec rm -vr {} +  \
+		|| echo Fail Safe Aborted  ;
+.PHONY:fail-safe
 
