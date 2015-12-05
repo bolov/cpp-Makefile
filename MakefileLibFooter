@@ -74,7 +74,7 @@ include $(MAKEFILE_DIR)/MakefileColor
 build: $(BUILD_DIR)/$(LIB_BASENAME)
 .PHONY:build
 
-install: $(LIB_DIR)/$(LIB_BASENAME) install-headers
+install: $(LIB_DIR)/$(LIB_BASENAME) $(INSTALLED_HEADERS)
 .PHONY:install
 
 # install library
@@ -83,12 +83,14 @@ $(LIB_DIR)/$(LIB_BASENAME): $(BUILD_DIR)/$(LIB_BASENAME)
 	     "to ${COL_DIR}$(LIB_DIR)${COL_RESET}\\n" | $(COL_BEHAVE)
 	@install -m 444 -D -t $(LIB_DIR) $(BUILD_DIR)/$(LIB_BASENAME)
 
-install-headers:
+# install headers (must be pattern rule to work with parallel build)
+# all targets must have % a common part (dot here). prereqs must not have %
+# http://stackoverflow.com/a/3077254/2805305
+$(INSTALLED_HEADERS:%.hpp=%%hpp): $(DB_HEADERS)
 	@echo "${COL_ACTION}installing headers${COL_RESET}"\
 	     "to ${COL_DIR}$(INCLUDE_DIR)${COL_RESET} \\n" | $(COL_BEHAVE)
 	@install -d $(INCLUDE_DIR)
 	@cp -ruT $(SRC_HEADERS_DIR) $(INCLUDE_DIR)
-.PHONY:install-headers
 
 uninstall:
 	@echo "${COL_ACTION}uninstalling${COL_RESET} "  \

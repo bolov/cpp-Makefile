@@ -2,7 +2,7 @@
 #
 # Batch build
 
-MAKEFLAGS += --no-print-directory
+# MAKEFLAGS += --no-print-directory
 
 batch-build:
 	$(MAKE) -f Makefile build build=debug
