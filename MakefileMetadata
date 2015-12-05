@@ -1,0 +1,13 @@
+build_metadata: tags cscope.out
+.PHONY: build_metadata
+
+tags: $(DB_SOURCES) $(DB_HEADERS)
+	# TODO works with 2 dirs?
+	ctags -f $@ -R $(SRC_HEADERS_DIR) -R $(SRC_SOURCES_DIR)
+
+cscope.out: $(DB_SOURCES) $(DB_HEADERS)
+	cscope -f$@ -Rb
+
+clean_metadata:
+	@rm -f tags cscope.out
+.PHONY: clean_metadata

@@ -5,6 +5,9 @@
 # Makefile related variables
 # ==============================================================================
 
+# must be before any other includes
+MAKEFILE_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+
 # set BUILD variable
 build ?= debug
 BUILD := $(build)
@@ -54,28 +57,7 @@ CXXFLAGS := $(CXXFLAGS) $(cxxflags.$(BUILD)) \
             $(WARNING_FLAGS) $(OPTIMIZATION_FLAGS)
 LDFLAGS  := $(LDFLAGS) $(ldflags.$(BUILD))
 
-COL_BLACK   := `tput setaf 0`
-COL_RED     := `tput setaf 1`
-COL_GREEN   := `tput setaf 2`
-COL_YELLOW  := `tput setaf 3`
-COL_BLUE    := `tput setaf 4`
-COL_MAGENTA := `tput setaf 5`
-COL_CYAN    := `tput setaf 6`
-COL_WHITE   := `tput setaf 7`
-
-COL_RESET   := `tput sgr0`
-
-COL_ACTION := $(COL_GREEN)
-COL_FILE   := $(COL_CYAN)
-COL_EXE    := $(COL_YELLOW)
-COL_DIR    := $(COL_BLUE)
-
-# if output supports color, just pass the input to output
-# else strip the input from ASCII color codes
-# ALWAYS pipe colored output to this
-# sed expression taken from http://unix.stackexchange.com/a/4533/92787
-COL_BEHAVE := ( test -t 1 && cat || \
-   sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" )
+include $(MAKEFILE_DIR)/MakefileColor
 
 # Builds, targets & rules
 # ==============================================================================
@@ -111,56 +93,6 @@ clean:
 	@rm -rf $(BUILD_DIR) $(BIN_DIR)
 .PHONY: clean
 
-#generated makefiles for automatic prerequisites of the included header files
-# -M all headers; -MM ignore system
-# -MG assume missing header
-# -MT change target
-$(PREREQS):$(BUILD_DIR)/%.d:$(SRC_SOURCES_DIR)/%.cpp
-	@mkdir -p $(@D)
-	@$(CXX) -o $@ -MM -MG -MT $(@:.d=.o) -MT $@ $(CXXFLAGS) $<
-
-# include the makefiles with the automatic prerequisites of
-# the included header files
-# don't include for goals not needing them
-
-ifndef MAKECMDGOALS
--include $(PREREQS)
-endif
-
-# .DEFAULT is here because fmm
-# sometimes make calls itself with `-npq .DEFAULT`
-# some sort of dry run that actually runs the commands
-ifneq ($(MAKECMDGOALS), $(filter $(MAKECMDGOALS), \
-    clean clean_metadata uninstall build_metadata \
-    batch-clean batch-uninstall fail_safe .DEFAULT))
--include $(PREREQS)
-endif
-
-build_metadata: tags cscope.out
-.PHONY: build_metadata
-
-tags: $(DB_SOURCES) $(DB_HEADERS)
-	# TODO works with 2 dirs?
-	ctags -f $@ -R $(SRC_HEADERS_DIR) -R $(SRC_SOURCES_DIR)
-
-cscope.out: $(DB_SOURCES) $(DB_HEADERS)
-	cscope -f$@ -Rb
-
-clean_metadata:
-	@rm -f tags cscope.out
-.PHONY: clean_metadata
-
-FAIL_SAFE_FIND := find . -maxdepth 1 -type d -a -not -name ".*" \
-	-a \( -iname "*bin*" -o -iname "*build*" -o  -iname "*install*" \)
-
-fail-safe:
-	@echo "Trigger ${COL_RED}fail-safe${COL_RESET}?" ; \
-	echo "The following directories will be recursively removed:" ; \
-	$(FAIL_SAFE_FIND) -print ; \
-	echo -n "[y/n]: " ;\
-	read answer ; \
-	[ $$answer = y ] \
-		&& $(FAIL_SAFE_FIND) -exec rm -fr {} +  \
-		|| echo Fail Safe Aborted  ;
-.PHONY:fail-safe
-
+include $(MAKEFILE_DIR)/MakefilePrerequisites
+include $(MAKEFILE_DIR)/MakefileMetadata
+include $(MAKEFILE_DIR)/MakefileFailSafe

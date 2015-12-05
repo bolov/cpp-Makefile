@@ -1,0 +1,25 @@
+#generated makefiles for automatic prerequisites of the included header files
+# -M all headers; -MM ignore system
+# -MG assume missing header
+# -MT change target
+$(PREREQS):$(BUILD_DIR)/%.d:$(SRC_SOURCES_DIR)/%.cpp
+	@mkdir -p $(@D)
+	@$(CXX) -o $@ -MM -MG -MT $(@:.d=.o) -MT $@ $(CXXFLAGS) $<
+
+# include the makefiles with the automatic prerequisites of
+# the included header files
+# don't include for goals not needing them
+
+ifndef MAKECMDGOALS
+-include $(PREREQS)
+endif
+
+# .DEFAULT is here because fmm
+# sometimes make calls itself with `-npq .DEFAULT`
+# some sort of dry run that actually runs the commands
+ifneq ($(MAKECMDGOALS), $(filter $(MAKECMDGOALS), \
+    clean clean_metadata uninstall build_metadata \
+    batch-clean batch-uninstall fail_safe .DEFAULT))
+-include $(PREREQS)
+endif
+

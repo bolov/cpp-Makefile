@@ -1,0 +1,23 @@
+COL_BLACK   := `tput setaf 0`
+COL_RED     := `tput setaf 1`
+COL_GREEN   := `tput setaf 2`
+COL_YELLOW  := `tput setaf 3`
+COL_BLUE    := `tput setaf 4`
+COL_MAGENTA := `tput setaf 5`
+COL_CYAN    := `tput setaf 6`
+COL_WHITE   := `tput setaf 7`
+
+COL_RESET   := `tput sgr0`
+
+COL_ACTION := $(COL_GREEN)
+COL_FILE   := $(COL_CYAN)
+COL_EXE    := $(COL_YELLOW)
+COL_DIR    := $(COL_BLUE)
+
+# if output supports color, just pass the input to output
+# else strip the input from ASCII color codes
+# ALWAYS pipe colored output to this
+# sed expression taken from http://unix.stackexchange.com/a/4533/92787
+COL_BEHAVE := ( test -t 1 && cat || \
+   sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" )
+

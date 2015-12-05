@@ -9,7 +9,17 @@ batch-build:
 	$(MAKE) -f Makefile build build=release
 .PHONY:batch-build
 
+batch-install:
+	$(MAKE) -f Makefile install build=debug
+	$(MAKE) -f Makefile install build=release
+.PHONY:batch-install
+
 batch-clean:
 	$(MAKE) -f Makefile clean build=debug
 	$(MAKE) -f Makefile clean build=release
 .PHONY:batch-clean
+
+batch-uninstall:
+	$(MAKE) -f Makefile uninstall build=debug
+	$(MAKE) -f Makefile uninstall build=release
+.PHONY:batch-uninstall

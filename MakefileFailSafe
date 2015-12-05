@@ -1,0 +1,14 @@
+FAIL_SAFE_FIND := find . -maxdepth 1 -type d -a -not -name ".*" \
+                  -a \( -iname "*build*" -o  -iname "*install*" \)
+
+fail-safe:
+	@echo "Trigger ${COL_RED}fail-safe${COL_RESET}?" ; \
+	echo "The following directories will be recursively removed:" ; \
+	$(FAIL_SAFE_FIND) -print ; \
+	echo -n "[y/n]: " ;\
+	read answer ; \
+	[ $$answer = y ] \
+		&& $(FAIL_SAFE_FIND) -exec rm -fr {} +  \
+		|| echo Fail Safe Aborted  ;
+.PHONY:fail-safe
+
