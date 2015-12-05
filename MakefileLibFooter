@@ -59,7 +59,8 @@ WARNING_FLAGS := $(warning_flags.all) $(warning_flags.$(BUILD))
 
 AR       := gcc-ar
 CXX      ?= g++
-CXXFLAGS := $(CXXFLAGS) $(WARNING_FLAGS) $(OPTIMIZATION_FLAGS) \
+CXXFLAGS := $(CXXFLAGS) $(cxxflags.$(BUILD)) \
+            $(WARNING_FLAGS) $(OPTIMIZATION_FLAGS) \
             -iquote "$(SRC_HEADERS_DIR)"
 
 COL_BLACK   := `tput setaf 0`
@@ -169,7 +170,7 @@ tags: $(DB_SOURCES) $(DB_HEADERS)
 cscope.out: $(DB_SOURCES) $(DB_HEADERS)
 	cscope -f$@ -Rb
 
-clean_metadata: clean
+clean_metadata:
 	@rm -f tags cscope.out
 .PHONY: clean_metadata
 
