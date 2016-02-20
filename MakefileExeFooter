@@ -68,10 +68,10 @@ build: $(BIN_DIR)/$(BIN_BASENAME)
 # build executable
 $(BIN_DIR)/$(BIN_BASENAME): $(OBJS)
 	@echo "${COL_ACTION}linking${COL_RESET}" \
-         "${COL_EXE}$@${COL_RESET} from: $^\\n" \
+         "${COL_EXE}$@${COL_RESET} from: $(OBJS)\\n" \
 	     "	flags: $(CXXFLAGS) $(LDFLAGS)\\n" | $(COL_BEHAVE)
 	@mkdir -p $(@D)
-	@$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS)
+	@$(CXX) -o $@ $(CXXFLAGS) $(OBJS) $(LDFLAGS)
 
 run: build
 	$(BIN_DIR)/$(BIN_BASENAME)
