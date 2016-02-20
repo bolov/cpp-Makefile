@@ -8,7 +8,6 @@
 # make [rule] [build={debug|relase}]
 
 NAME := dreamflight
-TYPE := exe-no-install
 
 SOURCES := main.cpp required.cpp
 
@@ -24,11 +23,20 @@ warning_flags.debug := -Wno-error=unused-variable \
 warning_flags.release :=
 
 CXX := g++
+
 CXXFLAGS := -std=c++14 -g
+# cxxflags.debug =
+# cxxflags.release =
+
 LDFLAGS :=
+# ldflags.debug :=
+# ldflags.release :=
 
-DEBUGGER := cgdb
+DEBUGGER := gdb -tui
 
-include Makefile.d/MakefileFooter
+include Makefile.d/MakefileExeFooter
+# OR
+# include Makefile.d/MakefileLibFooter
+
 
 include Makefile.d/BatchMakefile
